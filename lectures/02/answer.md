@@ -48,19 +48,19 @@ Judgment on Unknowns: Fine-tuning did not guarantee reliable judgment on ungroun
 Basic
 
 ### Changed Setting
-- **Parameter:** `lora_r`[cite: 39]
-- **Original:** `16`[cite: 40]
-- **Modified:** `32`[cite: 39]
+- Parameter: `lora_r`
+- Original: `16`
+- Modified: `32`
 
 ### Results Comparison Table
 
 | Metric | Original Settings (`lora_r=16`) | Modified Settings (`lora_r=32`) |
 | :--- | :--- | :--- |
-| **Final Loss** | ~0.0140 | 0.015067 |
-| **Training Time** | ~260s | 264s |
-| **Format Rate (Before / After)** | 9.5% / 100.0% | 9.5% / 100.0% |
-| **Content Rate (Before / After)** | 0.0% / 90.5% | 0.0% / 90.5% |
+| Final Loss | ~0.0140 | 0.015067 |
+| Training Time | ~260s | 264s |
+| Format Rate (Before / After) | 9.5% / 100.0% | 9.5% / 100.0% |
+| Content Rate (Before / After) | 0.0% / 90.5% | 0.0% / 90.5% |
 
 ### Discussion: Fine-Tuning Fit vs. Unfit Scenarios
-- **When Fine-Tuning Fits:** Enforcing specific output formatting (e.g., JSON schema adherence), domain-specific output style, and structural constraints on model responses.
-- **When Fine-Tuning Does Not Fit:** Storing dynamic external facts, resolving queries requiring real-time knowledge, or serving as a replacement for Retrieval-Augmented Generation (RAG).
+- When Fine-Tuning Fits: Enforcing specific output formatting (e.g., JSON schema adherence), domain-specific output style, and structural constraints on model responses.
+- When Fine-Tuning Does Not Fit: Storing dynamic external facts, resolving queries requiring real-time knowledge, or serving as a replacement for Retrieval-Augmented Generation (RAG).
