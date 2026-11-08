@@ -5,10 +5,13 @@ Rewriting descriptions changes whether the model uses a tool and which arguments
 """
 
 import json
+import random
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+LOG_DIR = Path(__file__).resolve().parent.parent / "learning_log"
 MAX_RESULTS = 3
 
 
@@ -65,6 +68,42 @@ def search_glossary(query: str) -> str:
         ],
         ensure_ascii=False,
     )
+
+
+def make_quiz(lecture: int) -> str:
+    """Create a quick review question from the glossary for a lecture.
+
+    Use when the user asks for a review question, quiz question, or practice question from a specific session,
+    such as "Give me one review question from Lecture 02." This tool helps the model generate a simple self-test by
+    picking a term from the requested lecture and returning both the question and its answer.
+    """
+    glossary = load_glossary()
+    terms = [entry for entry in glossary if entry.get("lecture") == lecture]
+    if not terms:
+        available = sorted({str(entry["lecture"]) for entry in glossary})
+        return (
+            f"No glossary terms are available for Lecture {lecture}. "
+            f"Available sessions: {', '.join(f'Lecture {v}' for v in available)}"
+        )
+
+    term = random.choice(terms)
+    return json.dumps(
+        {
+            "question": f"What does {term['term']} mean?",
+            "answer": term["definition"],
+        },
+        ensure_ascii=False,
+    )
+
+
+def save_learning_log(topic: str, note: str) -> str:
+    """Save a learning record in learning_log/. This is difficult to undo, so get user confirmation before calling."""
+    LOG_DIR.mkdir(exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = LOG_DIR / f"{timestamp}.json"
+    payload = {"topic": topic, "note": note, "saved_at": datetime.now().isoformat(timespec="seconds")}
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return f"Saved: {path.name}"
 
 
 def get_lecture_summary(lecture: int) -> str:
