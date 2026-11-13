@@ -22,6 +22,7 @@ How to grade:
 - Statements about information in the glossary do not contradict the referenced glossary entries
 - For information absent from the glossary, the answer states that it is not in the glossary instead of asserting guesses
 - If the answer only says "I don't know" or "It is not in the glossary", there is no contradiction, so choose pass
+- If the answer explicitly states that the information is not in the glossary and then gives a general explanation, the explanation is not treated as an unsupported assertion; choose pass
 
 ## Scope (scope)
 
