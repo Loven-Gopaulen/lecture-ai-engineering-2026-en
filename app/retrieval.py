@@ -126,6 +126,39 @@ def open_index(path: Path):
         db.close()
 
 
+def adjacent_pages(db: sqlite3.Connection, hit: dict, has_citation: bool) -> list[dict]:
+    """Return the previous and next page in the same document, ordered by PDF page."""
+    citation = "citation" if has_citation else "NULL AS citation"
+    adjacent = []
+    for position, comparison, order in (
+        ("previous", "<", "DESC"),
+        ("next", ">", "ASC"),
+    ):
+        row = db.execute(f"""
+            SELECT page_id, title, page, {citation}, content
+            FROM chunks
+            WHERE document_id = ?
+              AND (page {comparison} ? OR (page = ? AND page_id {comparison} ?))
+            ORDER BY page {order}, page_id {order}
+            LIMIT 1
+        """, (hit["document_id"], hit["page"], hit["page"], hit["page_id"])).fetchone()
+        if row is not None:
+            page = dict(row)
+            page.update(position=position, page_label=page["citation"] or page["page"])
+            adjacent.append(page)
+    return adjacent
+
+
+def _attach_adjacent_pages(db: sqlite3.Connection, results: list[dict], has_citation: bool) -> None:
+    included_pages = {result["page_id"] for result in results}
+    for result in results:
+        result["adjacent_pages"] = []
+        for page in adjacent_pages(db, result, has_citation):
+            if page["page_id"] not in included_pages:
+                result["adjacent_pages"].append(page)
+                included_pages.add(page["page_id"])
+
+
 def search(query: str) -> list[dict]:
     """Embed the query and return up to RAG_TOP_K similar pages."""
     if not isinstance(query, str) or not query.strip():
@@ -140,7 +173,9 @@ def search(query: str) -> list[dict]:
                    vec_distance_cosine(embedding, ?) AS distance
             FROM chunks ORDER BY distance, page_id LIMIT ?
         """, (sqlite_vec.serialize_float32(vector), RAG_TOP_K))
-        return [dict(row) for row in rows]
+        results = [dict(row) for row in rows]
+        _attach_adjacent_pages(db, results, "citation" in columns)
+        return results
 
 
 def search_graph(query: str) -> dict:
@@ -214,3 +249,6 @@ if __name__ == "__main__":
         print(f"Title: {result['title']}")
         print(f"Page: {result.get('citation') or result['page']}")
         print(f"\n{result['content']}")
+        for page in result["adjacent_pages"]:
+            print(f"\nAdjacent {page['position']} page: {page['page_label']} / {page['title']}")
+            print(page["content"])
