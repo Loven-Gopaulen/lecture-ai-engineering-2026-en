@@ -80,6 +80,21 @@ def get_lecture_summary(lecture: int) -> str:
         return f"Key points for Lecture {lecture:02d} are not available yet. Available sessions: {', '.join(available)}"
     return path.read_text(encoding="utf-8")
 
+
+def make_quiz(lecture: int) -> str:
+    """Return course material for creating a quiz about the specified lecture.
+
+    Use when asked to make a quiz for a lecture. The returned key points are
+    the source material for the quiz.
+    """
+    path = DATA_DIR / "lectures" / f"{lecture:02d}.md"
+    if not path.exists():
+        available = sorted(p.stem for p in (DATA_DIR / "lectures").glob("*.md"))
+        available_lectures = ", ".join(f"Lecture {number}" for number in available)
+        return f"Lecture {lecture:02d} does not exist. Available lectures: {available_lectures}."
+    return f"Create a quiz using these key points from Lecture {lecture:02d}:\n\n{path.read_text(encoding='utf-8')}"
+
+
 def search_materials(query: str) -> str:
     """Search the main materials for Lectures 01–03 and return relevant page text, titles, and page numbers.
 

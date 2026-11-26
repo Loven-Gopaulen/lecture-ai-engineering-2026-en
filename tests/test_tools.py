@@ -39,6 +39,18 @@ def test_lecture_summary():
     assert "not available yet" in tools.get_lecture_summary(99)
 
 
+def test_make_quiz_returns_source_material_for_available_lecture():
+    result = tools.make_quiz(3)
+    assert "Create a quiz using these key points from Lecture 03" in result
+    assert "agent" in result
+
+
+def test_make_quiz_explains_out_of_range_lecture():
+    result = tools.make_quiz(99)
+    assert "Lecture 99 does not exist" in result
+    assert "Lecture 03" in result
+
+
 def test_default_question_of_lecture1_is_answerable_from_glossary():
     """The Lecture 03 agent can correctly answer the Lecture 01 default question (app.ask) using the glossary."""
     from app.ask import DEFAULT_QUESTION

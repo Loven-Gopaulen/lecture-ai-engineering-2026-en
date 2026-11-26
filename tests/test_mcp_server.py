@@ -13,6 +13,7 @@ from pydantic_ai.models.test import TestModel
 from app.mcp_agent import MCP_CONFIG, ConfigError, build_mcp_agent, describe_servers, read_config
 
 GLOSSARY_TOOL = "glossary_search_glossary"  # Prefixed with the configuration file server name "glossary"
+QUIZ_TOOL = "glossary_make_quiz"
 
 
 def _glossary_only_config(tmp_path):
@@ -36,6 +37,19 @@ def test_glossary_server_exposes_search_tool(tmp_path):
 
     offered = {t.name for t in model.last_model_request_parameters.function_tools}
     assert GLOSSARY_TOOL in offered  # Check inclusion so adding tools in the exercises does not break the test
+    assert QUIZ_TOOL in offered
+
+
+def test_out_of_range_quiz_message_comes_back_through_mcp(tmp_path):
+    model = TestModel(call_tools=[QUIZ_TOOL])
+    result = build_mcp_agent(_glossary_only_config(tmp_path)).run_sync(
+        "Make a quiz for Lecture 99.", model=model
+    )
+
+    returns = _parts(result, ToolReturnPart)
+    assert returns and returns[0].tool_name == QUIZ_TOOL
+    assert "does not exist" in str(returns[0].content)
+    assert "Available lectures" in str(returns[0].content)
 
 
 def test_glossary_result_comes_back_through_mcp(tmp_path):
